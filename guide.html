@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Инструкция к приложению «Калории»: установка, настройка нормы, ежедневное ведение дневника">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#F6F8F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F130E" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Как вести дневник калорий</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;0,7..72,700;1,7..72,400&family=Golos+Text:wght@400;500;600;700&display=swap">
+
+<style>
+  :root {
+    --ground:      #F6F8F3;
+    --surface:     #FFFFFF;
+    --surface-2:   #EEF2E9;
+    --ink:         #171C15;
+    --ink-2:       #4B5548;
+    --ink-3:       #7C877A;
+    --rule:        #DDE4D6;
+    --rule-2:      #C6D0BE;
+    --accent:      #2C6E48;
+    --accent-soft: #E3EFE5;
+    --amber:       #8A6212;
+    --amber-soft:  #F6EFDC;
+    --shadow:      0 1px 2px rgba(23, 28, 21, .05), 0 8px 24px -12px rgba(23, 28, 21, .12);
+
+    --display: "Literata", Georgia, "Times New Roman", serif;
+    --body: "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0F130E;
+      --surface:     #171C16;
+      --surface-2:   #1F261E;
+      --ink:         #E8EDE4;
+      --ink-2:       #A7B2A3;
+      --ink-3:       #77836F;
+      --rule:        #2A322A;
+      --rule-2:      #3B453A;
+      --accent:      #7FC79A;
+      --accent-soft: #1B2A20;
+      --amber:       #D8B45F;
+      --amber-soft:  #2A2416;
+      --shadow:      0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #0F130E;
+    --surface:     #171C16;
+    --surface-2:   #1F261E;
+    --ink:         #E8EDE4;
+    --ink-2:       #A7B2A3;
+    --ink-3:       #77836F;
+    --rule:        #2A322A;
+    --rule-2:      #3B453A;
+    --accent:      #7FC79A;
+    --accent-soft: #1B2A20;
+    --amber:       #D8B45F;
+    --amber-soft:  #2A2416;
+    --shadow:      0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .6);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.62;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+
+  /* ---------- hero ---------- */
+  .hero { display: flex; flex-direction: column; gap: 1.25rem; }
+  .hero-mark { display: flex; align-items: center; gap: .875rem; }
+  .hero-mark svg { width: 3rem; height: 3rem; flex: none; }
+  .hero-mark span {
+    font-family: var(--body); font-size: .75rem; font-weight: 600;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(2.125rem, 8vw, 2.875rem);
+    font-weight: 700; line-height: 1.1; letter-spacing: -.02em;
+    margin: 0; text-wrap: balance;
+  }
+  .hero .lede { margin: 0; font-size: 1.125rem; color: var(--ink-2); text-wrap: pretty; }
+
+  .linkcard {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 14px; padding: 1rem 1.125rem; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: .375rem;
+  }
+  .linkcard .lbl {
+    font-size: .6875rem; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .linkcard a {
+    font-family: var(--mono); font-size: .9375rem; color: var(--accent);
+    word-break: break-all; text-decoration: none; font-weight: 500;
+  }
+  .linkcard a:hover { text-decoration: underline; }
+
+  /* ---------- index ---------- */
+  .index { display: flex; flex-wrap: wrap; gap: .4375rem; }
+  .index a {
+    font-size: .8125rem; font-weight: 500; color: var(--ink-2);
+    background: var(--surface-2); border: 1px solid transparent;
+    padding: .3125rem .75rem; border-radius: 999px; text-decoration: none;
+    transition: color .15s, border-color .15s;
+  }
+  .index a:hover { color: var(--accent); border-color: var(--rule-2); }
+
+  /* ---------- sections ---------- */
+  section { display: flex; flex-direction: column; gap: 1rem; scroll-margin-top: 1.5rem; }
+  section > h2 {
+    font-family: var(--display); font-size: 1.625rem; font-weight: 700;
+    line-height: 1.2; letter-spacing: -.015em; margin: 0;
+    padding-top: 1.5rem; border-top: 1px solid var(--rule); text-wrap: balance;
+  }
+  section > h3 {
+    font-family: var(--body); font-size: 1.0625rem; font-weight: 700;
+    margin: .75rem 0 -.375rem; color: var(--ink);
+  }
+  p { margin: 0; text-wrap: pretty; }
+  strong { font-weight: 600; }
+  em { font-style: italic; font-family: var(--display); }
+
+  .ui {
+    font-family: var(--body); font-weight: 600; font-size: .9375em;
+    background: var(--surface-2); color: var(--ink);
+    padding: .0625rem .375rem; border-radius: 5px;
+    border: 1px solid var(--rule); white-space: nowrap;
+  }
+
+  /* ---------- steps (genuine sequence) ---------- */
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; counter-reset: s; }
+  .steps > li {
+    counter-increment: s; display: grid;
+    grid-template-columns: 1.75rem 1fr; gap: .875rem; align-items: start;
+  }
+  .steps > li::before {
+    content: counter(s);
+    font-family: var(--display); font-size: .9375rem; font-weight: 700;
+    color: var(--accent); background: var(--accent-soft);
+    width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    display: grid; place-items: center; margin-top: .0625rem;
+  }
+  .steps > li > div { display: flex; flex-direction: column; gap: .3125rem; }
+  .steps .t { font-weight: 600; }
+  .steps .d { color: var(--ink-2); font-size: .9375rem; }
+
+  /* ---------- plain list ---------- */
+  .bullets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
+  .bullets > li { display: grid; grid-template-columns: .875rem 1fr; gap: .75rem; align-items: start; }
+  .bullets > li::before {
+    content: ""; width: .375rem; height: .375rem; border-radius: 50%;
+    background: var(--rule-2); margin-top: .625rem;
+  }
+
+  /* ---------- callouts ---------- */
+  .note, .warn {
+    border-radius: 12px; padding: .9375rem 1.0625rem;
+    display: flex; flex-direction: column; gap: .5rem; font-size: .9375rem;
+  }
+  .note { background: var(--accent-soft); }
+  .warn { background: var(--amber-soft); }
+  .note .hd, .warn .hd {
+    font-size: .6875rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  }
+  .note .hd { color: var(--accent); }
+  .warn .hd { color: var(--amber); }
+  .note p, .warn p { color: var(--ink-2); }
+
+  /* ---------- table ---------- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: .9375rem; }
+  th, td { padding: .625rem .875rem; text-align: left; border-bottom: 1px solid var(--rule); }
+  tbody tr:last-child td { border-bottom: none; }
+  th {
+    font-size: .6875rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); background: var(--surface-2);
+  }
+  td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.hi { color: var(--accent); font-weight: 600; }
+
+  /* ---------- closing ---------- */
+  .closing {
+    border-top: 1px solid var(--rule); padding-top: 1.75rem;
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  .closing p { font-family: var(--display); font-size: 1.0625rem; color: var(--ink-2); }
+  .closing p:first-child { color: var(--ink); }
+
+  /* ---------- open-app button ---------- */
+  .openapp {
+    display: flex; align-items: center; justify-content: center; gap: .625rem;
+    background: var(--accent); color: var(--ground);
+    font-family: var(--body); font-size: 1.0625rem; font-weight: 600;
+    text-decoration: none; padding: .9375rem 1.25rem; border-radius: 13px;
+    box-shadow: var(--shadow); transition: opacity .15s;
+  }
+  .openapp:hover { opacity: .88; }
+  .openapp svg { width: 1.375rem; height: 1.375rem; flex: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="hero">
+    <div class="hero-mark">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="24" r="19" fill="none" stroke="var(--rule-2)" stroke-width="5"/>
+        <circle cx="24" cy="24" r="19" fill="none" stroke="var(--accent)" stroke-width="5"
+                stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="38"
+                transform="rotate(-90 24 24)"/>
+        <circle cx="24" cy="24" r="5.5" fill="var(--accent)"/>
+      </svg>
+      <span>Приложение «Калории»</span>
+    </div>
+
+    <h1>Как вести дневник калорий</h1>
+    <p class="lede">Всё, что нужно знать, чтобы начать сегодня и не бросить через неделю. Читается минут за семь, дальше можно возвращаться по оглавлению.</p>
+
+    <div class="linkcard">
+      <span class="lbl">Ссылка на приложение</span>
+      <a href="https://alexsonwe-bit.github.io/kkal/">https://alexsonwe-bit.github.io/kkal/</a>
+    </div>
+  </header>
+
+  <nav class="index" aria-label="Содержание">
+    <a href="#install">Установка</a>
+    <a href="#profile">Профиль</a>
+    <a href="#add">Как добавлять еду</a>
+    <a href="#own">Свои продукты</a>
+    <a href="#diary">Дневник</a>
+    <a href="#progress">Прогресс и вес</a>
+    <a href="#truth">Про точность</a>
+    <a href="#backup">Чтобы не потерять</a>
+    <a href="#calm">Напоследок</a>
+  </nav>
+
+  <section id="install">
+    <h2>Установка</h2>
+    <p>Приложение не из App Store — оно живёт по ссылке, но ставится на телефон как обычное, со своей иконкой. Внутри интернет ему нужен только один раз, при установке.</p>
+
+    <ol class="steps">
+      <li><div>
+        <span class="t">Откройте ссылку в Safari</span>
+        <span class="d">Именно в Safari. Если ссылка пришла в Telegram или WhatsApp, они откроют её у себя внутри — тогда нажмите «…» или «Открыть в браузере» и выберите Safari. Из встроенного окошка установка не сработает.</span>
+      </div></li>
+      <li><div>
+        <span class="t">Нажмите «Поделиться»</span>
+        <span class="d">Квадратик со стрелкой вверх, внизу экрана.</span>
+      </div></li>
+      <li><div>
+        <span class="t">Пролистайте до «На экран „Домой“»</span>
+        <span class="d">Название можно оставить «Калории». Нажмите «Добавить» — и на экране появится зелёная иконка с кольцом.</span>
+      </div></li>
+    </ol>
+
+    <div class="note">
+      <span class="hd">Дальше без интернета</span>
+      <p>После установки приложение работает где угодно: в метро, в самолёте, с нулём делений связи. Все расчёты идут прямо в телефоне.</p>
+    </div>
+  </section>
+
+  <section id="profile">
+    <h2>Первым делом — Профиль</h2>
+    <p>Откройте вкладку <span class="ui">Профиль</span> и впишите свои данные. Пока это не сделано, приложение считает норму для условного человека, и все проценты будут неправдой.</p>
+
+    <ul class="bullets">
+      <li><strong>Пол, возраст, рост, вес</strong> — по ним считается, сколько энергии тело тратит в покое.</li>
+      <li><strong>Активность</strong> — про обычную жизнь, а не про то, как хотелось бы. Сидячая работа без спорта — это «минимальная», даже если день кажется суетным. Прогулки и пара тренировок в неделю — «лёгкая».</li>
+      <li><strong>Цель</strong> — худеть, держать вес или набирать. Если сомневаетесь, начните с «худеть мягко». Резкий дефицит выматывает и почти всегда заканчивается срывом.</li>
+    </ul>
+
+    <p>Ниже приложение покажет вашу норму: калории и три числа — белки, жиры, углеводы. Это ориентир на день, а не приговор. Перевыполнить или недобрать на сотню-другую — обычное дело.</p>
+
+    <div class="note">
+      <span class="hd">Поле «API-ключ» пропустите</span>
+      <p>Оно ниже, в блоке про распознавание еды по фото. Эта функция не подключена — оставьте поле пустым, на работу приложения это никак не влияет. Фотографии всё равно можно прикреплять к записям, просто состав вы указываете сами.</p>
+    </div>
+  </section>
+
+  <section id="add">
+    <h2>Как добавлять еду</h2>
+    <p>Вкладка <span class="ui">Добавить</span>, поле поиска. Напишите «гречка», «творог», «банан» — выберите из списка — укажите вес в граммах. Всё.</p>
+
+    <h3>Вес в граммах</h3>
+    <p>Кухонные весы стоят рублей семьсот и решают половину задачи. Первые пару недель взвешивайте — глаз быстро научится, и дальше можно будет прикидывать.</p>
+    <p>Под полем веса есть быстрые кнопки. У штучных продуктов они умные: у яйца это <span class="ui">1 шт · 55 г</span>, у хлеба <span class="ui">1 ломтик · 25 г</span>, у молока <span class="ui">стакан · 250 г</span>. Часто достаточно одного нажатия.</p>
+
+    <h3>Приёмы пищи</h3>
+    <p>Завтрак, обед, ужин, перекус. Приложение само угадывает по времени суток, но в карточке добавления это можно переключить.</p>
+
+    <h3>Поправить или удалить</h3>
+    <p>Нажмите на запись в дневнике — откроется та же карточка, где можно поменять вес, перенести в другой приём пищи или удалить.</p>
+
+    <div class="note">
+      <span class="hd">Со второй недели станет быстрее</span>
+      <p>Если поле поиска пустое, приложение показывает недавнее. Обычное домашнее меню — это десяток-полтора продуктов, они осядут в этом списке, и еда будет добавляться в два касания.</p>
+    </div>
+  </section>
+
+  <section id="own">
+    <h2>Свои продукты</h2>
+    <p>Это самая полезная кнопка в приложении, и о ней легко забыть. Внизу вкладки <span class="ui">Добавить</span> — <span class="ui">+ Свой продукт или блюдо</span>.</p>
+
+    <h3>Продукты из магазина</h3>
+    <p>В базе есть «творог 5%» вообще. Но у вас в холодильнике — конкретный творог конкретного производителя, и на пачке написаны точные цифры. Перепишите их один раз, и продукт останется в поиске навсегда.</p>
+    <p>Заносите то, что покупаете постоянно: свой йогурт, свой хлеб, свой сыр, свою протеиновую кашу. Пять минут за раз — и дневник становится точным.</p>
+
+    <h3>Домашние блюда</h3>
+    <p>Приготовили кастрюлю супа или противень сырников — переключите тумблер на <span class="ui">вся порция</span>. Тогда вводите вес всего блюда и суммарные калории по продуктам, из которых готовили. Приложение само пересчитает на 100 г, и дальше вы просто взвешиваете свою тарелку.</p>
+  </section>
+
+  <section id="diary">
+    <h2>Дневник</h2>
+    <p>Главный экран. Кольцо показывает, <strong>сколько калорий ещё осталось</strong> до нормы — не сколько съедено. Когда цифра уходит в минус, кольцо краснеет и пишет «перебор».</p>
+    <p>Под кольцом три полоски: белки, жиры, углеводы. Из них важнее всего <strong>белок</strong> — если он регулярно недобирается, при похудении уходит не только жир, но и мышцы. Жиры и углеводы можно тасовать между собой довольно свободно.</p>
+
+    <h3>Вода</h3>
+    <p>Внизу ряд стаканов по 250 мл. Нажимаете на любой — заполняются все до него. Чтобы убрать один лишний, нажмите на последний закрашенный: он снимется.</p>
+
+    <h3>Прошлые дни</h3>
+    <p>Стрелки по краям даты листают дни назад — забытое можно дописать вечером. Нажатие на саму дату возвращает на сегодня.</p>
+  </section>
+
+  <section id="progress">
+    <h2>Прогресс и вес</h2>
+    <p>Вкладка <span class="ui">Прогресс</span>: столбики калорий по дням, пунктиром — норма. Сразу видно, какие дни выбиваются. Ниже — средние значения за неделю, две или месяц.</p>
+    <p>Там же поле для веса. Вводите его <strong>утром, натощак, после туалета, до завтрака</strong> — и желательно всегда в одинаковых условиях, иначе сравнивать будет нечего.</p>
+
+    <div class="warn">
+      <span class="hd">Не взвешивайтесь каждый день с надеждой</span>
+      <p>Вес скачет на килограмм-полтора от соли, воды, цикла и просто вчерашнего ужина. Смотреть надо на линию за две-три недели, а не на сегодняшнюю цифру. Средняя потеря 0,3–0,7 кг в неделю — это хороший, устойчивый темп.</p>
+    </div>
+  </section>
+
+  <section id="truth">
+    <h2>Про точность</h2>
+    <p>Цифры в базе — справочные, средние по продукту. Реальные зависят от сорта, жирности, способа готовки. Расхождение в 10–15% — норма, и для отслеживания динамики этого совершенно достаточно.</p>
+
+    <h3>Одна ловушка, о которой все спотыкаются</h3>
+    <p>Крупы и макароны в базе есть отдельно сухие и отдельно варёные — это <em>разные</em> строки с очень разными числами. Взвешивать надо то, что реально лежит в тарелке.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Продукт</th><th>Ккал на 100 г</th><th>Что взвешивать</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Гречка сухая</td><td class="n">343</td><td>крупу до варки</td></tr>
+          <tr><td>Гречка варёная</td><td class="n hi">110</td><td>кашу в тарелке</td></tr>
+          <tr><td>Макароны сухие</td><td class="n">344</td><td>пасту до варки</td></tr>
+          <tr><td>Макароны варёные</td><td class="n hi">112</td><td>готовые, в тарелке</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Ошибиться здесь легко, а разница получается втрое. Если сомневаетесь — выбирайте «варёная» и взвешивайте тарелку.</p>
+
+    <h3>Масло считается</h3>
+    <p>Ложка растительного масла на сковороде — это 152 калории. В ста граммах куриной грудки — 113. То есть масло, на котором жарят, калорийнее самой курицы. Соусы и заправки туда же: майонез, сметана, песто. Их проще недооценить, чем что-либо ещё, а набегает заметно.</p>
+  </section>
+
+  <section id="backup">
+    <h2>Чтобы не потерять записи</h2>
+    <p>Все данные хранятся только в вашем телефоне. Это хорошо для приватности — дневник никуда не уходит, никто его не видит. Но есть обратная сторона.</p>
+
+    <div class="warn">
+      <span class="hd">Очистка данных Safari стирает всё</span>
+      <p>Раз в пару месяцев заходите в <span class="ui">Профиль</span> → <span class="ui">Выгрузить</span>. Сохранится файл со всеми записями — отправьте его себе в заметки или в переписку. Если что-то случится, кнопка <span class="ui">Загрузить</span> вернёт всё обратно.</p>
+    </div>
+
+    <p>На другом телефоне дневник будет пустым — синхронизации нет. Перенести можно тем же файлом: выгрузить на старом, загрузить на новом.</p>
+  </section>
+
+  <section id="calm" class="closing">
+    <h2 style="border:none;padding-top:0">Напоследок</h2>
+    <p>Смысл дневника не в том, чтобы каждый день попадать в норму до последней калории. Он в том, чтобы увидеть картину: куда на самом деле уходят калории, где недобирается белок, какие дни выбиваются и почему.</p>
+    <p>Через месяц многое станет понятно и без взвешивания — и это, вообще говоря, и есть цель. Дневник — временный инструмент, а не пожизненная обязанность.</p>
+    <p>Если счёт начнёт вызывать тревогу, портить отношение к еде или превращать ужин в арифметику — сделайте паузу. Ни одна цифра в приложении этого не стоит.</p>
+
+    <a class="openapp" href="./">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M7.5 12h9"/>
+      </svg>
+      Открыть приложение
+    </a>
+  </section>
+
+</div>
+</body>
+</html>

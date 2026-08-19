@@ -1,7 +1,8 @@
-var CACHE = "kkal-v2";
+var CACHE = "kkal-v3";
 var ASSETS = [
   "./",
   "./index.html",
+  "./guide.html",
   "./manifest.webmanifest",
   "./icon-180.png",
   "./icon-192.png",
