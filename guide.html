@@ -174,10 +174,12 @@
 
   /* ---------- plain list ---------- */
   .bullets { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
-  .bullets > li { display: grid; grid-template-columns: .875rem 1fr; gap: .75rem; align-items: start; }
+  /* не grid: <strong> внутри пункта стал бы отдельной ячейкой, а текст после него —
+     ещё одной, и хвост уезжал бы во вторую строку в колонку шириной с маркер */
+  .bullets > li { position: relative; padding-left: 1.125rem; }
   .bullets > li::before {
-    content: ""; width: .375rem; height: .375rem; border-radius: 50%;
-    background: var(--rule-2); margin-top: .625rem;
+    content: ""; position: absolute; left: 0; top: .625rem;
+    width: .375rem; height: .375rem; border-radius: 50%; background: var(--rule-2);
   }
 
   /* ---------- callouts ---------- */

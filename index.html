@@ -39,6 +39,7 @@
     --f: #C9A227;
     --c: #3E7CB1;
     --warn: #B4462C;
+    --warn-soft: #F7EBE2;
     --radius: 14px;
     --shell: 30rem;
   }
@@ -58,6 +59,7 @@
       --f: #E0C56B;
       --c: #7BAEDA;
       --warn: #E58163;
+      --warn-soft: #2E2119;
     }
   }
   :root[data-theme="dark"] {
@@ -75,6 +77,7 @@
     --f: #E0C56B;
     --c: #7BAEDA;
     --warn: #E58163;
+    --warn-soft: #2E2119;
   }
 
   body {
@@ -205,6 +208,62 @@
   .chart { width: 100%; height: 9rem; display: block; overflow: visible; }
   .chart text { font-size: 8px; fill: var(--ink-3); font-family: inherit; }
 
+  /* ---- гайд ---- */
+  .g-lede { font-size: 0.9375rem; color: var(--ink-2); }
+  .g-index { display: flex; flex-wrap: wrap; gap: 0.3125rem; }
+  .g-index a {
+    font-size: 0.75rem; color: var(--ink-2); background: var(--surface-2);
+    border: 1px solid var(--line); padding: 0.25rem 0.625rem;
+    border-radius: 999px; text-decoration: none;
+  }
+  .g-sec { scroll-margin-top: 0.75rem; }
+  .g-sec h2 {
+    font-size: 1.1875rem; font-weight: 650; letter-spacing: -0.01em;
+    margin: 0 0 0.5rem; line-height: 1.25;
+  }
+  .g-sec h3 { font-size: 0.9375rem; font-weight: 650; margin: 0.875rem 0 0.25rem; }
+  .g-sec p { margin: 0 0 0.625rem; font-size: 0.9375rem; }
+  .g-sec p:last-child { margin-bottom: 0; }
+  .g-sec b { font-weight: 650; }
+
+  .g-ui {
+    font-size: 0.875em; font-weight: 600; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 5px;
+    padding: 0.0625rem 0.3125rem; white-space: nowrap;
+  }
+
+
+  .g-bullets { list-style: none; margin: 0 0 0.625rem; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9375rem; }
+  /* не grid: <b> внутри пункта стал бы отдельной ячейкой, а текст после него — ещё
+     одной, и хвост уезжал бы во вторую строку в колонку шириной с маркер */
+  .g-bullets > li { position: relative; padding-left: 0.9375rem; }
+  .g-bullets > li::before {
+    content: ""; position: absolute; left: 0; top: 0.5625rem;
+    width: 0.3125rem; height: 0.3125rem; border-radius: 50%; background: var(--line-2);
+  }
+
+  .g-note, .g-warn { border-radius: 11px; padding: 0.75rem 0.875rem; margin: 0.75rem 0; font-size: 0.875rem; }
+  .g-note { background: var(--accent-soft); }
+  .g-warn { background: var(--warn-soft); }
+  .g-note .hd, .g-warn .hd {
+    display: block; font-size: 0.6875rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.3125rem;
+  }
+  .g-note .hd { color: var(--accent); }
+  .g-warn .hd { color: var(--warn); }
+  .g-note p, .g-warn p { color: var(--ink-2); font-size: 0.875rem; }
+
+  .g-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; margin: 0.75rem 0; }
+  .g-tablewrap table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+  .g-tablewrap th, .g-tablewrap td { padding: 0.4375rem 0.625rem; text-align: left; border-bottom: 1px solid var(--line); }
+  .g-tablewrap tbody tr:last-child td { border-bottom: none; }
+  .g-tablewrap th {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--ink-3); background: var(--surface-2);
+  }
+  .g-tablewrap td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .g-tablewrap td.hi { color: var(--accent); font-weight: 650; }
+
   /* ---- tabbar ---- */
   .tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
@@ -213,8 +272,8 @@
     border-top: 1px solid var(--line);
     padding-bottom: env(safe-area-inset-bottom);
   }
-  .tabbar > div { max-width: var(--shell); margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
-  .tab { padding: 0.5rem 0 0.4375rem; display: flex; flex-direction: column; align-items: center; gap: 0.125rem; color: var(--ink-3); font-size: 0.6875rem; }
+  .tabbar > div { max-width: var(--shell); margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+  .tab { padding: 0.5rem 0.125rem 0.4375rem; display: flex; flex-direction: column; align-items: center; gap: 0.125rem; color: var(--ink-3); font-size: 0.6875rem; line-height: 1.15; text-align: center; }
   .tab svg { width: 1.375rem; height: 1.375rem; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .tab[aria-current="page"] { color: var(--accent); font-weight: 600; }
 
@@ -405,9 +464,126 @@
       <button class="btn danger" id="btnWipe" style="margin-top:0.5rem">Стереть всё</button>
     </div>
 
-    <a class="btn ghost" href="guide.html" style="text-decoration:none">Инструкция: как всем этим пользоваться</a>
-
     <p class="tiny" style="text-align:center">Значения КБЖУ в базе — справочные, на 100 г продукта. Реальные цифры зависят от рецепта и способа готовки. Приложение не заменяет врача или диетолога.</p>
+  </section>
+
+  <!-- ============ ГАЙД ============ -->
+  <section class="view" id="v-guide">
+    <div class="card">
+      <h2 style="font-size:1.375rem;font-weight:650;letter-spacing:-0.015em;margin-bottom:0.375rem">Как вести дневник</h2>
+      <p class="g-lede">Всё, что нужно знать, чтобы начать сегодня и не бросить через неделю. Читается минут за семь, дальше можно возвращаться по оглавлению.</p>
+      <div class="g-index" style="margin-top:0.75rem">
+        <a href="#g-profile">Профиль</a>
+        <a href="#g-add">Как добавлять еду</a>
+        <a href="#g-own">Свои продукты</a>
+        <a href="#g-diary">Дневник</a>
+        <a href="#g-progress">Прогресс и вес</a>
+        <a href="#g-truth">Про точность</a>
+        <a href="#g-backup">Чтобы не потерять</a>
+        <a href="#g-calm">Напоследок</a>
+      </div>
+    </div>
+
+    <div class="card g-sec" id="g-profile">
+      <h2>Первым делом — Профиль</h2>
+      <p>Откройте вкладку <span class="g-ui">Профиль</span> и впишите свои данные. Пока это не сделано, приложение считает норму для условного человека, и все проценты будут неправдой.</p>
+      <ul class="g-bullets">
+        <li><b>Пол, возраст, рост, вес</b> — по ним считается, сколько энергии тело тратит в покое.</li>
+        <li><b>Активность</b> — про обычную жизнь, а не про то, как хотелось бы. Сидячая работа без спорта — это «минимальная», даже если день кажется суетным. Прогулки и пара тренировок в неделю — «лёгкая».</li>
+        <li><b>Цель</b> — худеть, держать вес или набирать. Если сомневаетесь, начните с «худеть мягко». Резкий дефицит выматывает и почти всегда заканчивается срывом.</li>
+      </ul>
+      <p>Ниже приложение покажет норму: калории и три числа — белки, жиры, углеводы. Это ориентир на день, а не приговор. Перевыполнить или недобрать на сотню-другую — обычное дело.</p>
+      <div class="g-note">
+        <span class="hd">Поле «API-ключ» пропустите</span>
+        <p>Оно в блоке про распознавание еды по фото. Эта функция не подключена — оставьте поле пустым, на работу приложения это никак не влияет. Фотографии всё равно можно прикреплять к записям, просто состав вы указываете сами.</p>
+      </div>
+    </div>
+
+    <div class="card g-sec" id="g-add">
+      <h2>Как добавлять еду</h2>
+      <p>Вкладка <span class="g-ui">Добавить</span>, поле поиска. Напишите «гречка», «творог», «банан» — выберите из списка — укажите вес в граммах. Всё.</p>
+      <h3>Вес в граммах</h3>
+      <p>Кухонные весы стоят рублей семьсот и решают половину задачи. Первые пару недель взвешивайте — глаз быстро научится, и дальше можно будет прикидывать.</p>
+      <p>Под полем веса есть быстрые кнопки. У штучных продуктов они умные: у яйца это <span class="g-ui">1 шт · 55 г</span>, у хлеба <span class="g-ui">1 ломтик · 25 г</span>, у молока <span class="g-ui">стакан · 250 г</span>. Часто достаточно одного нажатия.</p>
+      <h3>Приёмы пищи</h3>
+      <p>Завтрак, обед, ужин, перекус. Приложение само угадывает по времени суток, но в карточке добавления это можно переключить.</p>
+      <h3>Поправить или удалить</h3>
+      <p>Нажмите на запись в дневнике — откроется та же карточка, где можно поменять вес, перенести в другой приём пищи или удалить.</p>
+      <div class="g-note">
+        <span class="hd">Со второй недели станет быстрее</span>
+        <p>Если поле поиска пустое, приложение показывает недавнее. Обычное домашнее меню — это десяток-полтора продуктов, они осядут в этом списке, и еда будет добавляться в два касания.</p>
+      </div>
+    </div>
+
+    <div class="card g-sec" id="g-own">
+      <h2>Свои продукты</h2>
+      <p>Это самая полезная кнопка в приложении, и о ней легко забыть. Внизу вкладки <span class="g-ui">Добавить</span> — <span class="g-ui">+ Свой продукт</span>.</p>
+      <h3>Продукты из магазина</h3>
+      <p>В базе есть «творог 5%» вообще. Но у вас в холодильнике — конкретный творог конкретного производителя, и на пачке написаны точные цифры. Перепишите их один раз, и продукт останется в поиске навсегда.</p>
+      <p>Заносите то, что покупаете постоянно: свой йогурт, свой хлеб, свой сыр, свою кашу. Пять минут за раз — и дневник становится точным.</p>
+      <h3>Домашние блюда</h3>
+      <p>Приготовили кастрюлю супа или противень сырников — переключите тумблер на <span class="g-ui">вся порция</span>. Тогда вводите вес всего блюда и суммарные калории по продуктам, из которых готовили. Приложение само пересчитает на 100 г, и дальше вы просто взвешиваете свою тарелку.</p>
+    </div>
+
+    <div class="card g-sec" id="g-diary">
+      <h2>Дневник</h2>
+      <p>Главный экран. Кольцо показывает, <b>сколько калорий ещё осталось</b> до нормы — не сколько съедено. Когда цифра уходит в минус, кольцо краснеет и пишет «перебор».</p>
+      <p>Под кольцом три полоски: белки, жиры, углеводы. Из них важнее всего <b>белок</b> — если он регулярно недобирается, при похудении уходит не только жир, но и мышцы. Жиры и углеводы можно тасовать между собой довольно свободно.</p>
+      <h3>Вода</h3>
+      <p>Внизу ряд стаканов по 250 мл. Нажимаете на любой — заполняются все до него. Чтобы убрать один лишний, нажмите на последний закрашенный: он снимется.</p>
+      <h3>Прошлые дни</h3>
+      <p>Стрелки по краям даты листают дни назад — забытое можно дописать вечером. Нажатие на саму дату возвращает на сегодня.</p>
+    </div>
+
+    <div class="card g-sec" id="g-progress">
+      <h2>Прогресс и вес</h2>
+      <p>Вкладка <span class="g-ui">Прогресс</span>: столбики калорий по дням, пунктиром — норма. Сразу видно, какие дни выбиваются. Ниже — средние значения за неделю, две или месяц.</p>
+      <p>Там же поле для веса. Вводите его <b>утром, натощак, после туалета, до завтрака</b> — и желательно всегда в одинаковых условиях, иначе сравнивать будет нечего.</p>
+      <div class="g-warn">
+        <span class="hd">Не взвешивайтесь каждый день с надеждой</span>
+        <p>Вес скачет на килограмм-полтора от соли, воды, цикла и просто вчерашнего ужина. Смотреть надо на линию за две-три недели, а не на сегодняшнюю цифру. Средняя потеря 0,3–0,7 кг в неделю — это хороший, устойчивый темп.</p>
+      </div>
+    </div>
+
+    <div class="card g-sec" id="g-truth">
+      <h2>Про точность</h2>
+      <p>Цифры в базе — справочные, средние по продукту. Реальные зависят от сорта, жирности, способа готовки. Расхождение в 10–15% — норма, и для отслеживания динамики этого совершенно достаточно.</p>
+      <h3>Одна ловушка, о которой все спотыкаются</h3>
+      <p>Крупы и макароны в базе есть отдельно сухие и отдельно варёные — это разные строки с очень разными числами. Взвешивать надо то, что реально лежит в тарелке.</p>
+      <div class="g-tablewrap">
+        <table>
+          <thead><tr><th>Продукт</th><th>Ккал/100 г</th><th>Что взвешивать</th></tr></thead>
+          <tbody>
+            <tr><td>Гречка сухая</td><td class="n">343</td><td>крупу до варки</td></tr>
+            <tr><td>Гречка варёная</td><td class="n hi">110</td><td>кашу в тарелке</td></tr>
+            <tr><td>Макароны сухие</td><td class="n">344</td><td>пасту до варки</td></tr>
+            <tr><td>Макароны варёные</td><td class="n hi">112</td><td>готовые, в тарелке</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Ошибиться здесь легко, а разница получается втрое. Если сомневаетесь — выбирайте «варёная» и взвешивайте тарелку.</p>
+      <h3>Масло считается</h3>
+      <p>Ложка растительного масла на сковороде — это 152 калории. В ста граммах куриной грудки — 113. То есть масло, на котором жарят, калорийнее самой курицы. Соусы и заправки туда же: майонез, сметана, песто. Их проще недооценить, чем что-либо ещё, а набегает заметно.</p>
+    </div>
+
+    <div class="card g-sec" id="g-backup">
+      <h2>Чтобы не потерять записи</h2>
+      <p>Все данные хранятся только в вашем телефоне. Это хорошо для приватности — дневник никуда не уходит, никто его не видит. Но есть обратная сторона.</p>
+      <div class="g-warn">
+        <span class="hd">Очистка данных Safari стирает всё</span>
+        <p>Раз в пару месяцев заходите в <span class="g-ui">Профиль</span> → <span class="g-ui">Выгрузить</span>. Сохранится файл со всеми записями — отправьте его себе в заметки или в переписку. Если что-то случится, кнопка <span class="g-ui">Загрузить</span> вернёт всё обратно.</p>
+      </div>
+      <p>На другом телефоне дневник будет пустым — синхронизации нет. Перенести можно тем же файлом: выгрузить на старом, загрузить на новом.</p>
+      <h3>Если ставите на новый телефон</h3>
+      <p>Откройте ссылку в Safari, нажмите «Поделиться» и выберите «На экран „Домой“». Из встроенных браузеров Telegram или WhatsApp установка не работает — нужен именно Safari.</p>
+    </div>
+
+    <div class="card g-sec" id="g-calm">
+      <h2>Напоследок</h2>
+      <p>Смысл дневника не в том, чтобы каждый день попадать в норму до последней калории. Он в том, чтобы увидеть картину: куда на самом деле уходят калории, где недобирается белок, какие дни выбиваются и почему.</p>
+      <p>Через месяц многое станет понятно и без взвешивания — и это, вообще говоря, и есть цель. Дневник — временный инструмент, а не пожизненная обязанность.</p>
+      <p>Если счёт начнёт вызывать тревогу, портить отношение к еде или превращать ужин в арифметику — сделайте паузу. Ни одна цифра в приложении этого не стоит.</p>
+    </div>
   </section>
 </div>
 
@@ -424,6 +600,9 @@
   <button class="tab" data-v="profile">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/></svg>
     Профиль</button>
+  <button class="tab" data-v="guide">
+    <svg viewBox="0 0 24 24"><path d="M12 6.4C10.8 5.2 9.2 4.6 6.8 4.6H4.4v12.8h2.4c2.4 0 4 .6 5.2 1.8"/><path d="M12 6.4c1.2-1.2 2.8-1.8 5.2-1.8h2.4v12.8h-2.4c-2.4 0-4 .6-5.2 1.8"/><path d="M12 6.4v12.8"/></svg>
+    Гайд</button>
 </div></nav>
 
 <div class="scrim" id="scrim"></div>
@@ -907,6 +1086,19 @@ function go(v) {
   if (v === "profile") renderProfile();
 }
 $$(".tab").forEach(function (b) { b.addEventListener("click", function () { go(b.dataset.v); }); });
+
+/* Оглавление гайда: прокрутка вручную, чтобы в адресе не оставался хвост «#g-...» —
+   в установленном приложении он переживает перезапуск. */
+$$("#v-guide .g-index a").forEach(function (a) {
+  a.addEventListener("click", function (e) {
+    e.preventDefault();
+    var t = document.querySelector(a.getAttribute("href"));
+    if (!t) return;
+    /* мгновенно, а не smooth: гайд высотой в пять экранов, плавная прокрутка
+       через весь документ занимает больше секунды и ощущается тормозом */
+    t.scrollIntoView({ behavior: "auto", block: "start" });
+  });
+});
 
 /* ===================================================================
    ДНЕВНИК
