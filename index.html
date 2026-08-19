@@ -381,8 +381,8 @@
       <div class="fld"><label>API-ключ Anthropic (sk-ant-…)</label><input type="password" id="apiKey" placeholder="не задан" autocomplete="off" /></div>
       <div class="fld" style="margin-top:0.5rem"><label>Модель</label>
         <select id="apiModel">
-          <option value="claude-sonnet-5">Sonnet 5 — быстро и дёшево</option>
-          <option value="claude-opus-5">Opus 5 — точнее, дороже</option>
+          <option value="claude-opus-5">Opus 5 — точнее, около 1,5 ₽ за фото</option>
+          <option value="claude-sonnet-5">Sonnet 5 — дешевле, около 0,5 ₽ за фото</option>
         </select>
       </div>
       <p class="tiny" style="margin-top:0.5rem">Ключ хранится только в этом телефоне и уходит напрямую на api.anthropic.com. Из России может потребоваться VPN.</p>
@@ -754,7 +754,7 @@ function blank() {
     days: {},
     custom: [],
     recent: [],
-    settings: { apiKey: "", model: "claude-sonnet-5", theme: "auto" }
+    settings: { apiKey: "", model: "claude-opus-5", theme: "auto" }
   };
 }
 
@@ -1341,14 +1341,39 @@ function renderPhotoSlot() {
 }
 
 var PROMPT = [
-  "На фото — еда. Ты нутрициолог, оцени её состав.",
-  "Верни ТОЛЬКО JSON-массив, без markdown и пояснений вокруг.",
-  "Каждый элемент: {\"name\":\"название по-русски\",\"grams\":вес порции в граммах (число),",
-  "\"kcal\":ккал на 100 г,\"p\":белки на 100 г,\"f\":жиры на 100 г,\"c\":углеводы на 100 г}",
+  "На фото — еда. Ты нутрициолог, оцени её состав и заполни поле dishes.",
+  "Название пиши по-русски. grams — вес всей порции этого блюда,",
+  "kcal, p, f, c — калорийность, белки, жиры и углеводы на 100 г продукта.",
   "Разные блюда и гарниры — отдельными элементами. Соусы и масло учитывай в блюде.",
   "Вес оценивай по размеру посуды и пропорциям на фото.",
-  "Если еды на фото нет — верни []."
+  "Если еды на фото нет — оставь dishes пустым."
 ].join("\n");
+
+/* Схема ответа. Раньше формат форсировался префиллом "[" в роли assistant,
+   но на моделях 5-го поколения префиллы удалены и дают 400. */
+var DISH_SCHEMA = {
+  type: "object",
+  properties: {
+    dishes: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name:  { type: "string" },
+          grams: { type: "number" },
+          kcal:  { type: "number" },
+          p:     { type: "number" },
+          f:     { type: "number" },
+          c:     { type: "number" }
+        },
+        required: ["name", "grams", "kcal", "p", "f", "c"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["dishes"],
+  additionalProperties: false
+};
 
 function recognize(dataUrl, hint) {
   var b64 = dataUrl.split(",")[1];
@@ -1362,14 +1387,17 @@ function recognize(dataUrl, hint) {
       "anthropic-dangerous-direct-browser-access": "true"
     },
     body: JSON.stringify({
-      model: S.settings.model || "claude-sonnet-5",
-      max_tokens: 1024,
+      model: S.settings.model || "claude-opus-5",
+      max_tokens: 4096,
+      output_config: {
+        effort: "low",
+        format: { type: "json_schema", schema: DISH_SCHEMA }
+      },
       messages: [
         { role: "user", content: [
           { type: "image", source: { type: "base64", media_type: "image/jpeg", data: b64 } },
           { type: "text", text: text }
-        ] },
-        { role: "assistant", content: "[" }
+        ] }
       ]
     })
   }).then(function (r) {
@@ -1382,10 +1410,12 @@ function recognize(dataUrl, hint) {
     if (e instanceof TypeError) throw new Error("Нет связи с api.anthropic.com — возможно, нужен VPN");
     throw e;
   }).then(function (j) {
-    var raw = "[" + (j.content || []).map(function (c) { return c.text || ""; }).join("");
-    var a = raw.indexOf("["), z = raw.lastIndexOf("]");
-    if (a < 0 || z < a) throw new Error("Не понял ответ модели");
-    var arr = JSON.parse(raw.slice(a, z + 1));
+    if (j.stop_reason === "refusal") throw new Error("Модель отказалась разбирать это фото");
+    var txt = (j.content || []).filter(function (c) { return c.type === "text"; })
+                               .map(function (c) { return c.text || ""; }).join("");
+    var data;
+    try { data = JSON.parse(txt); } catch (e) { throw new Error("Не понял ответ модели"); }
+    var arr = (data && data.dishes) || [];
     return arr.filter(function (o) { return o && o.name; }).map(function (o) {
       return {
         name: String(o.name).slice(0, 80),
@@ -1618,7 +1648,7 @@ function renderProfile() {
     (bmi < 18.5 ? "ниже нормы" : bmi < 25 ? "норма" : bmi < 30 ? "избыточный вес" : "ожирение") + ".";
 
   $("#apiKey").value = S.settings.apiKey || "";
-  $("#apiModel").value = S.settings.model || "claude-sonnet-5";
+  $("#apiModel").value = S.settings.model || "claude-opus-5";
   $$("#themeSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === (S.settings.theme || "auto"))); });
 
   var nDays = Object.keys(S.days).filter(function (k) { return (S.days[k].items || []).length; }).length;
