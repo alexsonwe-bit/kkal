@@ -144,7 +144,15 @@
 
   /* ---- meals ---- */
   .meal + .meal { margin-top: 0.625rem; }
-  .meal > .hd { display: flex; align-items: baseline; gap: 0.5rem; padding: 0 0.125rem 0.375rem; }
+  .meal > .hd { display: flex; align-items: center; gap: 0.4375rem; padding: 0 0.125rem 0.375rem; }
+  .mealicon { width: 1.125rem; height: 1.125rem; flex: none; color: var(--ink-3); }
+  .mealicon svg { width: 100%; height: 100%; display: block; stroke-width: 1.85; }
+
+  /* пустые состояния: не больше одного кота на экран */
+  .catbox { display: flex; flex-direction: column; align-items: center; gap: 0.625rem; padding: 1.5rem 0 1.25rem; text-align: center; }
+  .catbox .art { width: 4.5rem; color: var(--ink-3); }
+  .catbox .art svg { width: 100%; height: auto; display: block; }
+  .catbox .t { font-size: 0.875rem; color: var(--ink-3); max-width: 17rem; line-height: 1.4; }
   .meal > .hd .t { font-weight: 600; }
   .meal > .hd .k { margin-left: auto; color: var(--ink-2); font-size: 0.875rem; }
   .items { display: flex; flex-direction: column; }
@@ -154,6 +162,8 @@
   .item .nm { font-size: 0.9375rem; }
   .item .gr { font-size: 0.75rem; color: var(--ink-3); }
   .item .kc { font-weight: 600; font-size: 0.9375rem; white-space: nowrap; }
+  /* без этого не видно, что строку можно нажать и поправить вес */
+  .item .chev { flex: none; color: var(--ink-3); font-size: 1.0625rem; line-height: 1; margin-left: 0.125rem; }
   .addbtn { width: 100%; text-align: left; padding: 0.5rem 0 0.125rem; color: var(--accent); font-size: 0.875rem; font-weight: 550; border-top: 1px solid var(--line); margin-top: 0.125rem; }
   .empty { color: var(--ink-3); font-size: 0.875rem; padding: 0.125rem 0 0.375rem; }
 
@@ -189,8 +199,13 @@
 
   /* ---- search results ---- */
   .res { display: flex; flex-direction: column; max-height: 24rem; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .res > button { display: flex; align-items: center; gap: 0.625rem; padding: 0.5625rem 0; text-align: left; border-top: 1px solid var(--line); }
-  .res > button:first-child { border-top: none; }
+  /* строка результата — контейнер, а не кнопка: внутрь кнопки нельзя вложить вторую */
+  .res > .resrow { display: flex; align-items: center; border-top: 1px solid var(--line); }
+  .res > .resrow:first-child { border-top: none; }
+  .resmain { display: flex; align-items: center; gap: 0.625rem; padding: 0.5625rem 0; text-align: left; flex: 1; min-width: 0; }
+  .resedit { flex: none; width: 2.5rem; height: 2.5rem; margin-left: 0.25rem; display: grid; place-items: center; color: var(--ink-3); }
+  .resedit svg { width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .resedit:active { color: var(--accent); }
   .res .nm { font-size: 0.9375rem; }
   .res .mc { font-size: 0.6875rem; color: var(--ink-3); }
   .res .kc { margin-left: auto; font-size: 0.8125rem; color: var(--ink-2); white-space: nowrap; }
@@ -350,6 +365,10 @@
 
     <div class="card">
       <input type="search" id="q" placeholder="Поиск: гречка, творог, банан…" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <div class="seg" id="qModes" style="margin-top:0.5rem">
+        <button data-m="recent" aria-pressed="true">Недавние</button>
+        <button data-m="mine" aria-pressed="false">Мои продукты</button>
+      </div>
       <div id="qHint" class="tiny" style="margin-top:0.5rem"></div>
       <div class="res" id="results" style="margin-top:0.375rem"></div>
     </div>
@@ -507,8 +526,8 @@
       <p>Под полем веса есть быстрые кнопки. У штучных продуктов они умные: у яйца это <span class="g-ui">1 шт · 55 г</span>, у хлеба <span class="g-ui">1 ломтик · 25 г</span>, у молока <span class="g-ui">стакан · 250 г</span>. Часто достаточно одного нажатия.</p>
       <h3>Приёмы пищи</h3>
       <p>Завтрак, обед, ужин, перекус. Приложение само угадывает по времени суток, но в карточке добавления это можно переключить.</p>
-      <h3>Поправить или удалить</h3>
-      <p>Нажмите на запись в дневнике — откроется та же карточка, где можно поменять вес, перенести в другой приём пищи или удалить.</p>
+      <h3>Ошиблись с весом — не страшно</h3>
+      <p>Любую запись в дневнике можно нажать, на это намекает стрелка <span class="g-ui">›</span> справа. Откроется та же карточка: поменять вес, перенести в другой приём пищи или удалить. Налили 350 мл, а записали 200 — правится здесь, за два касания, хоть через неделю.</p>
       <div class="g-note">
         <span class="hd">Со второй недели станет быстрее</span>
         <p>Если поле поиска пустое, приложение показывает недавнее. Обычное домашнее меню — это десяток-полтора продуктов, они осядут в этом списке, и еда будет добавляться в два касания.</p>
@@ -523,6 +542,14 @@
       <p>Заносите то, что покупаете постоянно: свой йогурт, свой хлеб, свой сыр, свою кашу. Пять минут за раз — и дневник становится точным.</p>
       <h3>Домашние блюда</h3>
       <p>Приготовили кастрюлю супа или противень сырников — переключите тумблер на <span class="g-ui">вся порция</span>. Тогда вводите вес всего блюда и суммарные калории по продуктам, из которых готовили. Приложение само пересчитает на 100 г, и дальше вы просто взвешиваете свою тарелку.</p>
+      <h3>Своя мера</h3>
+      <p>Если продукт всегда одинаковый — пачка творога 200 г, стакан смузи 350 мл, один сырник 70 г — впишите это в поля <span class="g-ui">Мера</span> и <span class="g-ui">Вес меры</span>. При добавлении появятся кнопки «1 пачка · 200 г», «2 пачки · 400 г», и вес не придётся набирать руками. Заодно это лучшая защита от опечаток в весе.</p>
+      <h3>Если ошиблись в цифрах</h3>
+      <p>Свои продукты можно править. На вкладке <span class="g-ui">Добавить</span> очистите поиск и переключитесь на <span class="g-ui">Мои продукты</span> — справа от каждого появится карандаш. Там же продукт удаляется.</p>
+      <div class="g-note">
+        <span class="hd">Про уже сделанные записи</span>
+        <p>Записи в дневнике хранят цифры отдельно от продукта — это снимок на момент добавления. Поэтому если продукт уже попадал в дневник, при сохранении появится галочка «Пересчитать N записей». Оставьте её, если исправляете опечатку: тогда прошлые дни пересчитаются. Снимите, если цифры изменились по-настоящему — например, купили творог другой жирности — и прошлое трогать не нужно.</p>
+      </div>
     </div>
 
     <div class="card g-sec" id="g-diary">
@@ -921,10 +948,40 @@ function norm(s) { return s.toLowerCase().replace(/ё/g, "е").replace(/[^a-zа-
    ХРАНИЛИЩЕ
    =================================================================== */
 var LS_KEY = "kkal.v1";
+function lineSvg(inner, vb) {
+  return '<svg viewBox="' + (vb || "0 0 24 24") + '" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+         'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + "</svg>";
+}
+
+/* завтрак — рассвет, обед — миска, ужин — луна, перекус — кошачья лапа */
 var MEALS = [
-  { k: "b", t: "Завтрак" }, { k: "l", t: "Обед" },
-  { k: "d", t: "Ужин" }, { k: "s", t: "Перекус" }
+  { k: "b", t: "Завтрак", icon: lineSvg('<path d="M4 18h16"/><path d="M12 4v2.5M5.9 8.4l1.8 1.8M18.1 8.4l-1.8 1.8"/><path d="M6.5 18a5.5 5.5 0 0 1 11 0"/>') },
+  { k: "l", t: "Обед",    icon: lineSvg('<path d="M3.5 11.5h17c0 4.5-3.8 7.5-8.5 7.5s-8.5-3-8.5-7.5Z"/><path d="M9 8.2c0-1.4 1.3-1.6 1.3-3M13 8.2c0-1.4 1.3-1.6 1.3-3"/>') },
+  { k: "d", t: "Ужин",    icon: lineSvg('<path d="M19.5 14.8A8.2 8.2 0 0 1 9.2 4.5a7.8 7.8 0 1 0 10.3 10.3Z"/>') },
+  { k: "s", t: "Перекус", icon: lineSvg('<ellipse cx="12" cy="15.6" rx="4.4" ry="3.7"/><circle cx="6.3" cy="10.6" r="1.9"/><circle cx="9.9" cy="7.4" r="1.9"/><circle cx="14.1" cy="7.4" r="1.9"/><circle cx="17.7" cy="10.6" r="1.9"/>') }
 ];
+
+/* Кот для пустых экранов. sleeping — закрытые глаза, иначе смотрит на вас. */
+function catSvg(sleeping) {
+  var eyes = sleeping
+    ? '<path d="M14.2 17.2c.8 1 2.1 1 2.9 0"/><path d="M22.9 17.2c.8 1 2.1 1 2.9 0"/>'
+    : '<path d="M15.6 16.8v1.6"/><path d="M24.4 16.8v1.6"/>';
+  return lineSvg(
+    '<path d="M11 10 9 3.6l6.6 3"/><path d="M29 10l2-6.4-6.6 3"/>' +
+    '<ellipse cx="20" cy="18" rx="11.4" ry="9.4"/>' + eyes +
+    '<path d="M18.9 20.5 20 21.5l1.1-1"/>' +
+    '<path d="M20 21.5v1.1"/><path d="M20 22.6c-.9.9-2.3.6-2.8-.3M20 22.6c.9.9 2.3.6 2.8-.3"/>' +
+    '<path d="M5.6 19.4h3.4M5.6 22.4h3.4M31 19.4h3.4M31 22.4h3.4"/>',
+    "0 0 40 34");
+}
+
+function catBox(text, sleeping) {
+  var w = el("div", "catbox");
+  var art = el("div", "art"); art.innerHTML = catSvg(sleeping);
+  w.appendChild(art);
+  w.appendChild(el("div", "t", text));
+  return w;
+}
 
 var S = load();
 
@@ -1141,17 +1198,28 @@ function renderDiary() {
 
   var box = $("#mealsCard"); box.innerHTML = "";
   var items = day(cur).items;
+
+  if (!items.length) {
+    var today = dkey(new Date());
+    box.appendChild(catBox(cur === today
+      ? "Здесь пока пусто. Начните с того, что уже съели — приложение посчитает само."
+      : "В этот день ничего не записано.", cur !== today));
+  }
+
   MEALS.forEach(function (M) {
     var list = items.filter(function (i) { return i.meal === M.k; });
     var sum = list.reduce(function (a, i) { return a + itemTotals(i).kcal; }, 0);
     var w = el("div", "meal");
     var hd = el("div", "hd");
+    var ic = el("span", "mealicon"); ic.innerHTML = M.icon;
+    hd.appendChild(ic);
     hd.appendChild(el("span", "t", M.t));
     hd.appendChild(el("span", "k num", list.length ? r0(sum) + " ккал" : ""));
     w.appendChild(hd);
 
     var il = el("div", "items");
-    if (!list.length) il.appendChild(el("div", "empty", "пусто"));
+    /* когда день пуст целиком, про это уже сказал кот сверху — четыре «пусто» лишние */
+    if (!list.length && items.length) il.appendChild(el("div", "empty", "пусто"));
     list.forEach(function (it) {
       var b = el("button", "item");
       if (it.photo) {
@@ -1165,6 +1233,7 @@ function renderDiary() {
       g.appendChild(el("div", "gr num", r0(it.grams) + " г · Б " + r1(x.p) + " Ж " + r1(x.f) + " У " + r1(x.c)));
       b.appendChild(g);
       b.appendChild(el("div", "kc num", r0(x.kcal)));
+      b.appendChild(el("span", "chev", "›"));
       b.addEventListener("click", function () { openItemSheet(it, M.k, true); });
       il.appendChild(b);
     });
@@ -1222,50 +1291,154 @@ function allFoods() {
   }).concat(DB);
 }
 
+/* Разговорные названия, до которых не добраться отсечением окончания.
+   Ключи и значения — уже в нормализованном виде: строчные, ё заменена на е. */
+var SYNONYMS = {
+  "картошка": "картофель", "картоха": "картофель", "пюрешка": "пюре",
+  "геркулес": "овсянка", "гречневая": "гречка", "гречневой": "гречка",
+  "кура": "курица", "курочка": "курица",
+  "черный": "ржаной", "чернослив": "чернослив",
+  "обезжиренный": "0", "обезжиренная": "0", "нежирный": "0", "нежирная": "0",
+  "сгущенка": "сгущенное", "шоколадка": "шоколад", "мороженка": "мороженое",
+  "газировка": "кола", "булка": "булочка", "спагетти": "макароны",
+  "вермишель": "макароны", "яишница": "яичница", "творожок": "творог",
+  "сметанка": "сметана", "растительное": "подсолнечное", "постное": "подсолнечное",
+  "минералка": "вода", "супчик": "суп", "пельмешки": "пельмени",
+  "орешки": "орех", "яблочко": "яблоко", "кефирчик": "кефир", "сырок": "сыр"
+};
+
+/* Целые обороты: словарь выше работает по одному слову и такое не берёт. */
+var PHRASES = {
+  "кофе с молоком": "латте", "черный хлеб": "хлеб ржаной",
+  "белый хлеб": "хлеб белый", "цельнозерновой хлеб": "хлеб цельнозерновой",
+  "куриное филе": "куриная грудка", "филе курицы": "куриная грудка",
+  "грудка курицы": "куриная грудка", "вареное яйцо": "яйцо куриное"
+};
+
+/* Русские слова меняют хвост при склонении: «яйца» против «яйцо»,
+   «сосиска» против «сосиски». Сравниваем по основе, а не целиком. */
+function stem(w) {
+  if (w.length <= 3) return w;
+  if (w.length <= 5) return w.slice(0, w.length - 1);
+  return w.slice(0, w.length - 2);
+}
+
 function search(q) {
   var nq = norm(q);
   if (!nq) return [];
-  var words = nq.split(" ");
-  var out = [];
-  allFoods().forEach(function (f) {
-    var ok = words.every(function (w) { return f.key.indexOf(w) >= 0; });
-    if (!ok) return;
-    var score = f.key.indexOf(words[0]);
-    if (score === 0) score = -100;
-    if (f.mine) score -= 50;
-    out.push({ f: f, s: score + f.key.length * 0.01 });
+  if (PHRASES[nq]) nq = norm(PHRASES[nq]);
+  var words = nq.split(" ").filter(Boolean).map(function (w) {
+    return SYNONYMS[w] ? norm(SYNONYMS[w]) : stem(w);
   });
-  out.sort(function (a, b) { return a.s - b.s; });
-  return out.slice(0, 60).map(function (o) { return o.f; });
+  if (!words.length) return [];
+
+  var foods = allFoods();
+
+  function collect(needAll) {
+    var out = [];
+    foods.forEach(function (f) {
+      var hits = 0, first = -1;
+      words.forEach(function (w) {
+        var at = f.key.indexOf(w);
+        if (at < 0) return;
+        hits++;
+        if (first < 0 || at < first) first = at;
+      });
+      if (needAll ? hits < words.length : hits === 0) return;
+
+      var s = -hits * 1000;                                   // сколько слов совпало — главное
+      if (first === 0) s -= 500;                              // совпало с начала названия
+      else if (f.key.charAt(first - 1) === " ") s -= 250;     // с начала любого слова
+      if (f.mine) s -= 100;                                   // свои продукты выше
+      s += f.key.length * 0.1;                                // при равенстве — что короче
+      out.push({ f: f, s: s });
+    });
+    out.sort(function (a, b) { return a.s - b.s; });
+    return out;
+  }
+
+  /* Сначала строго: должны совпасть все слова. Если пусто — ослабляем до любого,
+     чтобы «творог обезжиренный» показал хотя бы все творога. */
+  var res = collect(true);
+  if (!res.length && words.length > 1) res = collect(false);
+  return res.slice(0, 60).map(function (o) { return o.f; });
+}
+
+var addMode = "recent";
+
+$$("#qModes button").forEach(function (b) {
+  b.addEventListener("click", function () { addMode = b.dataset.m; renderAdd(); });
+});
+
+/* Записи в дневнике хранят снимок КБЖУ на момент добавления, а не ссылку на продукт.
+   Поэтому правка продукта сама по себе их не чинит — нужен явный пересчёт. */
+function usesOfProduct(id) {
+  var out = [];
+  Object.keys(S.days).forEach(function (k) {
+    (S.days[k].items || []).forEach(function (it) { if (it.src === id) out.push(it); });
+  });
+  return out;
 }
 
 function renderAdd() {
   renderPhotoSlot();
-  var q = $("#q").value;
+  var q = $("#q").value.trim();
   var res = $("#results"), hint = $("#qHint");
   res.innerHTML = "";
 
-  var list, isRecent = false;
-  if (q.trim()) {
+  $("#qModes").style.display = q ? "none" : "";
+  $$("#qModes button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.m === addMode)); });
+
+  var list;
+  if (q) {
     list = search(q);
     hint.textContent = list.length ? "" : "Ничего не нашлось. Добавьте свой продукт кнопкой ниже.";
+  } else if (addMode === "mine") {
+    list = allFoods().filter(function (f) { return f.mine; });
+    hint.textContent = list.length
+      ? "Карандаш справа — поправить название и КБЖУ."
+      : "Своих продуктов пока нет. Заведите кнопкой ниже — например, творог с вашей упаковки.";
   } else {
-    isRecent = true;
     var byId = {};
     allFoods().forEach(function (f) { byId[f.id] = f; });
     list = S.recent.map(function (id) { return byId[id]; }).filter(Boolean).slice(0, 12);
-    hint.textContent = list.length ? "Недавние" : "Начните вводить название продукта.";
+    hint.textContent = list.length ? "" : "Начните вводить название продукта.";
+  }
+
+  if (!list.length) {
+    hint.textContent = "";
+    res.appendChild(catBox(
+      q ? "Такого продукта в базе нет. Заведите свой — кнопкой ниже, цифры возьмите с упаковки."
+        : addMode === "mine"
+          ? "Своих продуктов пока нет. Заведите кнопкой ниже — например, творог с вашей упаковки."
+          : "Начните вводить название: гречка, творог, банан.", !q));
   }
 
   list.forEach(function (f) {
-    var b = el("button");
+    var row = el("div", "resrow");
+
+    var b = el("button", "resmain");
     var g = el("div", "grow");
     g.appendChild(el("div", "nm trunc", f.name));
     g.appendChild(el("div", "mc num", "Б " + f.p + " · Ж " + f.f + " · У " + f.c + (f.mine ? " · моё" : "")));
     b.appendChild(g);
     b.appendChild(el("div", "kc num", f.kcal + " ккал/100 г"));
     b.addEventListener("click", function () { openItemSheet(mkItem(f), guessMeal(), false); });
-    res.appendChild(b);
+    row.appendChild(b);
+
+    if (f.mine) {
+      var e = el("button", "resedit");
+      e.setAttribute("aria-label", "Изменить продукт " + f.name);
+      e.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.12 2.12 0 0 0-3-3L5 17v3Z"/><path d="M13.5 6.5l3 3"/></svg>';
+      e.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        var real = S.custom.filter(function (c) { return c.id === f.id; })[0];
+        if (real) openCustomSheet(real);
+      });
+      row.appendChild(e);
+    }
+
+    res.appendChild(row);
   });
 }
 
@@ -1396,13 +1569,33 @@ function openItemSheet(item, meal, editing) {
    =================================================================== */
 $("#btnCustom").addEventListener("click", function () { openCustomSheet(); });
 
-function openCustomSheet() {
+function openCustomSheet(rec) {
+  var editing = !!rec;
+  var uses = editing ? usesOfProduct(rec.id) : [];
+
   openSheet(function (b) {
-    b.appendChild(el("h2", null, "Свой продукт")).style.fontSize = "1.125rem";
-    b.appendChild(el("p", "tiny", "Перепишите КБЖУ с упаковки или посчитайте по рецепту. Продукт останется в поиске навсегда."));
+    b.appendChild(el("h2", null, editing ? "Изменить продукт" : "Свой продукт")).style.fontSize = "1.125rem";
+    b.appendChild(el("p", "tiny", editing
+      ? "Поправьте название или цифры. Значения хранятся на 100 г — переключите на «всю порцию», если удобнее считать от веса блюда."
+      : "Перепишите КБЖУ с упаковки или посчитайте по рецепту. Продукт останется в поиске навсегда."));
 
     var nf = el("div", "fld"); nf.appendChild(el("label", null, "Название"));
-    var ni = el("input"); ni.type = "text"; ni.placeholder = "Например: сырники мамины"; nf.appendChild(ni); b.appendChild(nf);
+    var ni = el("input"); ni.type = "text"; ni.placeholder = "Например: сырники мамины";
+    if (editing) ni.value = rec.name;
+    nf.appendChild(ni); b.appendChild(nf);
+
+    /* штучная мера: даёт быстрые кнопки веса вроде «1 пачка · 200 г»,
+       как у яйца и хлеба в базе. Необязательна. */
+    var uf = el("div", "grid2");
+    var ulw = el("div", "fld"); ulw.appendChild(el("label", null, "Мера, необязательно"));
+    var uli = el("input"); uli.type = "text"; uli.placeholder = "пачка, шт, стакан";
+    ulw.appendChild(uli); uf.appendChild(ulw);
+    var ugw = el("div", "fld"); ugw.appendChild(el("label", null, "Вес меры, г"));
+    var ugi = el("input"); ugi.type = "number"; ugi.inputMode = "numeric"; ugi.step = "1"; ugi.placeholder = "200";
+    ugw.appendChild(ugi); uf.appendChild(ugw);
+    if (editing && rec.unit) { uli.value = rec.unit.label; ugi.value = rec.unit.g; }
+    b.appendChild(uf);
+    b.appendChild(el("p", "tiny", "Заполните — и при добавлении появятся кнопки «1 пачка · 200 г», «2 пачки · 400 г». Пусто — останутся обычные 50, 100, 150 г."));
 
     var mode = "100";
     var ms = el("div", "seg");
@@ -1410,9 +1603,13 @@ function openCustomSheet() {
       var mb = el("button", null, m[1]);
       mb.setAttribute("aria-pressed", String(m[0] === mode));
       mb.addEventListener("click", function () {
-        mode = m[0];
+        if (mode === m[0]) return;
+        var was = mode; mode = m[0];
         $$("button", ms).forEach(function (x) { x.setAttribute("aria-pressed", String(x === mb)); });
         pf.style.display = mode === "portion" ? "" : "none";
+        /* переносим уже введённые цифры в новый режим, чтобы они не потерялись */
+        var portion = parseFloat(pi.value) || 100;
+        if (was !== mode) scaleFields(mode === "portion" ? portion / 100 : 100 / portion);
       });
       ms.appendChild(mb);
     });
@@ -1420,17 +1617,47 @@ function openCustomSheet() {
 
     var pf = el("div", "fld"); pf.style.display = "none";
     pf.appendChild(el("label", null, "Вес всей порции, г"));
-    var pi = el("input"); pi.type = "number"; pi.inputMode = "numeric"; pi.value = "200"; pf.appendChild(pi); b.appendChild(pf);
+    var pi = el("input"); pi.type = "number"; pi.inputMode = "numeric"; pi.value = editing ? "100" : "200";
+    pf.appendChild(pi); b.appendChild(pf);
+
+    var lastPortion = parseFloat(pi.value) || 100;
+    pi.addEventListener("input", function () {
+      var now = parseFloat(pi.value) || 0;
+      /* в режиме порции цифры — это итог за всё блюдо, значит при смене веса
+         они должны пропорционально ехать, иначе КБЖУ на 100 г молча поплывёт */
+      if (mode === "portion" && now > 0 && lastPortion > 0) scaleFields(now / lastPortion);
+      if (now > 0) lastPortion = now;
+    });
 
     var g = el("div", "grid4"), fields = {};
     [["kcal", "Ккал"], ["p", "Б, г"], ["f", "Ж, г"], ["c", "У, г"]].forEach(function (k) {
       var w = el("div", "fld"); w.appendChild(el("label", null, k[1]));
       var i = el("input"); i.type = "number"; i.inputMode = "decimal"; i.step = "0.1"; i.placeholder = "0";
+      if (editing) i.value = rec[k[0]];
       fields[k[0]] = i; w.appendChild(i); g.appendChild(w);
     });
     b.appendChild(g);
 
-    var ok = el("button", "btn", "Сохранить и добавить");
+    function scaleFields(k) {
+      ["kcal", "p", "f", "c"].forEach(function (key) {
+        var v = parseFloat(String(fields[key].value).replace(",", ".")) || 0;
+        if (v) fields[key].value = r1(v * k);
+      });
+    }
+
+    var syncCb = null;
+    if (uses.length) {
+      var sw = el("label", "row");
+      sw.style.cssText = "gap:0.5rem;font-size:0.8125rem;color:var(--ink-2);align-items:flex-start";
+      syncCb = el("input"); syncCb.type = "checkbox"; syncCb.checked = true;
+      syncCb.style.cssText = "width:auto;margin-top:0.1875rem";
+      sw.appendChild(syncCb);
+      sw.appendChild(el("span", null, "Пересчитать " + uses.length + " " +
+        plural(uses.length, "запись", "записи", "записей") + " в дневнике, где продукт уже использован"));
+      b.appendChild(sw);
+    }
+
+    var ok = el("button", "btn", editing ? "Сохранить" : "Сохранить и добавить");
     ok.addEventListener("click", function () {
       var name = ni.value.trim();
       if (!name) { toast("Введите название"); return; }
@@ -1441,12 +1668,47 @@ function openCustomSheet() {
         ["kcal", "p", "f", "c"].forEach(function (k) { v[k] = r1(v[k] / portion * 100); });
       }
       if (!v.kcal) { v.kcal = r1(v.p * 4 + v.f * 9 + v.c * 4); }
-      var rec = { id: "my" + uid(), name: name, kcal: v.kcal, p: v.p, f: v.f, c: v.c, unit: null };
-      S.custom.unshift(rec); save();
-      closeSheet();
-      openItemSheet(Object.assign(mkItem(Object.assign({}, rec, { mine: true })), { grams: portion }), guessMeal(), false);
+
+      var ulab = uli.value.trim();
+      var ugr = parseFloat(String(ugi.value).replace(",", ".")) || 0;
+      var unit = (ulab && ugr > 0) ? { label: ulab, g: r1(ugr) } : null;
+
+      if (editing) {
+        rec.name = name; rec.kcal = v.kcal; rec.p = v.p; rec.f = v.f; rec.c = v.c; rec.unit = unit;
+        var synced = syncCb && syncCb.checked;
+        if (synced) {
+          uses.forEach(function (it) {
+            it.name = name; it.kcal = v.kcal; it.p = v.p; it.f = v.f; it.c = v.c;
+          });
+        }
+        save(); closeSheet(); renderAdd();
+        toast(synced ? "Сохранено, записи пересчитаны" : "Сохранено");
+      } else {
+        var made = { id: "my" + uid(), name: name, kcal: v.kcal, p: v.p, f: v.f, c: v.c, unit: unit };
+        S.custom.unshift(made); save();
+        closeSheet();
+        /* сколько подставить в вес: в режиме порции — её вес, иначе мера, иначе 100 г */
+        var start = mode === "portion" ? portion : (unit ? unit.g : 100);
+        openItemSheet(Object.assign(mkItem(Object.assign({}, made, { mine: true })), { grams: start }), guessMeal(), false);
+      }
     });
     b.appendChild(ok);
+
+    if (editing) {
+      var del = el("button", "btn danger", "Удалить продукт");
+      del.addEventListener("click", function () {
+        var msg = "Удалить «" + rec.name + "» из своих продуктов?";
+        if (uses.length) {
+          msg += "\n\nЗаписи в дневнике (" + uses.length + ") останутся на месте: в них цифры уже сохранены отдельно.";
+        }
+        if (!confirm(msg)) return;
+        var i = S.custom.findIndex(function (c) { return c.id === rec.id; });
+        if (i >= 0) S.custom.splice(i, 1);
+        S.recent = S.recent.filter(function (x) { return x !== rec.id; });
+        save(); closeSheet(); renderAdd(); toast("Продукт удалён");
+      });
+      b.appendChild(del);
+    }
   });
 }
 
