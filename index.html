@@ -512,6 +512,7 @@
         <li><b>Цель</b> — худеть, держать вес или набирать. Если сомневаетесь, начните с «худеть мягко». Резкий дефицит выматывает и почти всегда заканчивается срывом.</li>
       </ul>
       <p>Ниже приложение покажет норму: калории и три числа — белки, жиры, углеводы. Это ориентир на день, а не приговор. Перевыполнить или недобрать на сотню-другую — обычное дело.</p>
+      <p>Когда вес или цель меняются, новая норма действует с сегодняшнего дня. Прошлые дни остаются с той нормой, по которой вы тогда жили, — задним числом «перебор» не появится.</p>
       <div class="g-note">
         <span class="hd">Поле «API-ключ» пропустите</span>
         <p>Оно в блоке про распознавание еды по фото. Эта функция не подключена — оставьте поле пустым, на работу приложения это никак не влияет. Фотографии всё равно можно прикреплять к записям, просто состав вы указываете сами.</p>
@@ -984,6 +985,7 @@ function catBox(text, sleeping) {
 }
 
 var S = load();
+if (backfillNorms()) save();
 
 function blank() {
   return {
@@ -1080,6 +1082,7 @@ function toast(msg) {
 function day(k) {
   if (!S.days[k]) S.days[k] = { items: [], water: 0, weight: null };
   if (!S.days[k].items) S.days[k].items = [];
+  if (!S.days[k].norm) S.days[k].norm = targets();
   return S.days[k];
 }
 
@@ -1100,28 +1103,61 @@ function dayTotals(k) {
 /* ===================================================================
    НОРМА: Миффлин — Сан-Жеор
    =================================================================== */
-function calcTargets() {
-  var p = S.profile;
-  var bmr = 10 * p.weight + 6.25 * p.height - 5 * p.age + (p.sex === "m" ? 5 : -161);
+function calcTargets(weight) {
+  var p = S.profile, w = weight || p.weight;
+  var bmr = 10 * w + 6.25 * p.height - 5 * p.age + (p.sex === "m" ? 5 : -161);
   var tdee = bmr * p.act;
   var kcal = Math.max(1100, tdee * (1 + p.goal));
   // белок 1.6–1.9 г/кг (больше на дефиците — сохраняет мышцы), жиры 0.9 г/кг
-  var prot = p.weight * (p.goal < 0 ? 1.9 : 1.6);
-  var fat = p.weight * 0.9;
+  var prot = w * (p.goal < 0 ? 1.9 : 1.6);
+  var fat = w * 0.9;
   var carb = (kcal - prot * 4 - fat * 9) / 4;
   if (carb < 50) { carb = 50; fat = (kcal - prot * 4 - carb * 4) / 9; }
   return {
     bmr: r0(bmr), tdee: r0(tdee),
     kcal: r0(kcal / 5) * 5, p: r0(prot), f: r0(fat), c: r0(carb),
-    water: r0(p.weight * 32 / 50) * 50
+    water: r0(w * 32 / 50) * 50
   };
 }
-function targets() {
+function targets(weight) {
   if (S.targets.auto) {
-    var t = calcTargets();
+    var t = calcTargets(weight);
     return { kcal: t.kcal, p: t.p, f: t.f, c: t.c, water: t.water };
   }
   return { kcal: +S.targets.kcal, p: +S.targets.p, f: +S.targets.f, c: +S.targets.c, water: +S.targets.water };
+}
+
+/* Норма замораживается на день. Иначе смена веса в профиле переписывала бы
+   прошлое: неделя, прожитая в норме, задним числом становилась «перебором».
+   Замороженная норма лежит в day.norm; меняется она только с сегодняшнего дня. */
+function dayTargets(k) {
+  var d = S.days[k];
+  return (d && d.norm) ? d.norm : targets();
+}
+function refreezeFromToday() {
+  var today = dkey(new Date());
+  Object.keys(S.days).forEach(function (k) {
+    if (k >= today) S.days[k].norm = targets();
+  });
+}
+/* Одноразово для дней, прожитых до появления day.norm: восстанавливаем норму
+   по весу, который был записан на тот момент, а не по сегодняшнему. */
+function backfillNorms() {
+  var today = dkey(new Date());
+  var keys = Object.keys(S.days).sort();
+  var wpts = keys.filter(function (k) { return S.days[k] && S.days[k].weight; })
+                 .map(function (k) { return { k: k, v: +S.days[k].weight }; });
+  var touched = false;
+  keys.forEach(function (k) {
+    var d = S.days[k];
+    if (!d || d.norm || k >= today) return;
+    var w = null;
+    wpts.forEach(function (p) { if (p.k <= k) w = p.v; });
+    if (w === null && wpts.length) w = wpts[0].v;
+    d.norm = targets(w || undefined);
+    touched = true;
+  });
+  return touched;
 }
 
 /* ===================================================================
@@ -1170,7 +1206,7 @@ function renderDiary() {
     : WDAYS[d.getDay()] + (d.getFullYear() !== new Date().getFullYear() ? ", " + d.getFullYear() : "");
   $("#dNext").disabled = cur >= today;
 
-  var T = targets(), t = dayTotals(cur);
+  var T = dayTargets(cur), t = dayTotals(cur);
   var left = T.kcal - t.kcal;
   var pct = T.kcal > 0 ? t.kcal / T.kcal : 0;
 
@@ -1245,7 +1281,7 @@ function renderDiary() {
     box.appendChild(w);
   });
 
-  var W = targets().water, dw = day(cur).water || 0;
+  var W = dayTargets(cur).water, dw = day(cur).water || 0;
   $("#waterLbl").textContent = dw + " / " + W + " мл";
   var gl = $("#glasses"); gl.innerHTML = "";
   var n = Math.max(8, Math.ceil(W / 250));
@@ -1986,26 +2022,44 @@ function lastDays(n) {
 }
 
 function renderStats() {
-  var keys = lastDays(range), T = targets();
+  var keys = lastDays(range);
   var vals = keys.map(function (k) { return dayTotals(k); });
+  /* норма у каждого дня своя — та, что была заморожена в тот день */
+  var norms = keys.map(function (k) { return (S.days[k] && S.days[k].norm) ? S.days[k].norm.kcal : null; });
+  /* дни без записей берут норму соседа, чтобы пунктир не прыгал на пустых местах */
+  var fill = null, i;
+  for (i = 0; i < norms.length; i++) { if (norms[i] === null) norms[i] = fill; else fill = norms[i]; }
+  fill = null;
+  for (i = norms.length - 1; i >= 0; i--) { if (norms[i] === null) norms[i] = fill; else fill = norms[i]; }
+  if (norms[0] === null) norms = keys.map(function () { return targets().kcal; });
+  var T = { kcal: norms[norms.length - 1] };
 
   /* --- столбики калорий --- */
   var W = 300, H = 120, pad = 14;
-  var maxV = Math.max(T.kcal * 1.15, Math.max.apply(null, vals.map(function (v) { return v.kcal; })) || 0, 100);
+  var maxV = Math.max(Math.max.apply(null, norms) * 1.15, Math.max.apply(null, vals.map(function (v) { return v.kcal; })) || 0, 100);
   var bw = (W - pad * 2) / keys.length;
   var svg = $("#kcalChart");
   svg.setAttribute("viewBox", "0 0 " + W + " " + (H + 14));
   var s = "";
+  /* пунктир нормы — ступенькой: если норма менялась, видно, где именно */
+  var np = "";
+  keys.forEach(function (k, i) {
+    var y = (H - (norms[i] / maxV) * (H - 6)).toFixed(1);
+    var x0 = (i === 0 ? 0 : pad + i * bw).toFixed(1);
+    var x1 = (i === keys.length - 1 ? W : pad + (i + 1) * bw).toFixed(1);
+    np += (i && norms[i] === norms[i - 1] ? "L" : "M") + x0 + " " + y + " L" + x1 + " " + y + " ";
+  });
+  s += '<path d="' + np + '" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.8"/>';
   var ty = H - (T.kcal / maxV) * (H - 6);
-  s += '<line x1="0" y1="' + ty.toFixed(1) + '" x2="' + W + '" y2="' + ty.toFixed(1) +
-       '" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.8"/>';
-  s += '<text x="2" y="' + (ty - 3).toFixed(1) + '" fill="var(--accent)">норма ' + T.kcal + '</text>';
+  var nlo = Math.min.apply(null, norms), nhi = Math.max.apply(null, norms);
+  s += '<text x="2" y="' + (Math.min(ty, H - (nhi / maxV) * (H - 6)) - 3).toFixed(1) + '" fill="var(--accent)">норма ' +
+       (nlo === nhi ? T.kcal : nlo + "–" + nhi) + '</text>';
 
   keys.forEach(function (k, i) {
     var v = vals[i].kcal;
     var h = v > 0 ? Math.max(2, (v / maxV) * (H - 6)) : 0;
     var x = pad + i * bw + bw * 0.18, w = bw * 0.64;
-    var col = v === 0 ? "var(--line)" : (v > T.kcal * 1.05 ? "var(--warn)" : "var(--accent)");
+    var col = v === 0 ? "var(--line)" : (v > norms[i] * 1.05 ? "var(--warn)" : "var(--accent)");
     s += '<rect x="' + x.toFixed(1) + '" y="' + (H - h).toFixed(1) + '" width="' + w.toFixed(1) +
          '" height="' + h.toFixed(1) + '" rx="2" fill="' + col + '" opacity="' + (v ? 0.9 : 0.5) + '"/>';
     if (range <= 14 || i % 5 === 0) {
@@ -2079,7 +2133,7 @@ $("#wSave").addEventListener("click", function () {
   if (!v || v < 20 || v > 400) { toast("Введите вес в килограммах"); return; }
   day(cur).weight = v;
   S.profile.weight = v;
-  save(); renderStats(); toast("Записано: " + r1(v) + " кг");
+  refreezeFromToday(); save(); renderStats(); toast("Записано: " + r1(v) + " кг");
 });
 
 /* ===================================================================
@@ -2115,16 +2169,16 @@ function renderProfile() {
 }
 
 $$("#sexSeg button").forEach(function (b) {
-  b.addEventListener("click", function () { S.profile.sex = b.dataset.v; save(); renderProfile(); });
+  b.addEventListener("click", function () { S.profile.sex = b.dataset.v; refreezeFromToday(); save(); renderProfile(); });
 });
 [["pAge", "age"], ["pHeight", "height"], ["pWeight", "weight"]].forEach(function (m) {
   $("#" + m[0]).addEventListener("change", function () {
     var v = parseFloat(String(this.value).replace(",", "."));
-    if (v > 0) { S.profile[m[1]] = v; save(); renderProfile(); }
+    if (v > 0) { S.profile[m[1]] = v; refreezeFromToday(); save(); renderProfile(); }
   });
 });
-$("#pAct").addEventListener("change", function () { S.profile.act = +this.value; save(); renderProfile(); });
-$("#pGoal").addEventListener("change", function () { S.profile.goal = +this.value; save(); renderProfile(); });
+$("#pAct").addEventListener("change", function () { S.profile.act = +this.value; refreezeFromToday(); save(); renderProfile(); });
+$("#pGoal").addEventListener("change", function () { S.profile.goal = +this.value; refreezeFromToday(); save(); renderProfile(); });
 
 $("#autoT").addEventListener("change", function () {
   S.targets.auto = this.checked;
@@ -2132,11 +2186,11 @@ $("#autoT").addEventListener("change", function () {
     var T = targets();
     S.targets.kcal = T.kcal; S.targets.p = T.p; S.targets.f = T.f; S.targets.c = T.c; S.targets.water = T.water;
   }
-  save(); renderProfile();
+  refreezeFromToday(); save(); renderProfile();
 });
 [["tK", "kcal"], ["tP", "p"], ["tF", "f"], ["tC", "c"], ["tW", "water"]].forEach(function (m) {
   $("#" + m[0]).addEventListener("change", function () {
-    S.targets[m[1]] = Math.max(0, parseFloat(this.value) || 0); save();
+    S.targets[m[1]] = Math.max(0, parseFloat(this.value) || 0); refreezeFromToday(); save();
   });
 });
 
@@ -2172,7 +2226,7 @@ $("#fImport").addEventListener("change", function () {
             targets: Object.assign(blank().targets, o.targets || {}),
             days: o.days || {}, custom: o.custom || [], recent: o.recent || [],
             settings: Object.assign(blank().settings, o.settings || {}) };
-      save(); applyTheme(); go("diary"); toast("Данные загружены");
+      backfillNorms(); save(); applyTheme(); go("diary"); toast("Данные загружены");
     } catch (e) { toast("Файл не подошёл"); }
   };
   fr.readAsText(f);
