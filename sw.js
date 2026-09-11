@@ -1,4 +1,4 @@
-var CACHE = "kkal-v6";
+var CACHE = "kkal-v7";
 var ASSETS = [
   "./",
   "./index.html",
