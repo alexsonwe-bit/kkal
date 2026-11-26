@@ -31,6 +31,10 @@
 
 Текст гайда продублирован в `index.html` и `guide.html` — правки вносить в обе копии.
 
+Рабочая копия на ПК владельца — `Downloads\Claude\kkal-site` (не git-клон). Сверено 26.11.2026: `index.html`, `guide.html`, `sw.js` побайтово совпадают с репозиторием. **`README.md` там устарел** в части хостинга (советует Yandex Cloud / Cloudflare) — фактически работает GitHub Pages.
+
+Где что в `index.html`: `FOOD_RAW` (~стр. 649), `LS_KEY = "kkal.v1"` (~952), `targets()` / `dayTargets()` / `refreezeFromToday()` / `backfillNorms()` (~1123–1146), `SYNONYMS` / `PHRASES` (~1333–1348), `usesOfProduct()` (~1412).
+
 ## Деплой
 
 GitHub Pages: Settings → Pages → Deploy from a branch → `main` → `/ (root)`. Владелец обычно загружает файлы сам: Add file → Upload files → Commit changes.
